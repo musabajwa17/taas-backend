@@ -11,7 +11,8 @@ const userSchema = mongoose.Schema( {
     },
     fullName: { type: String, required: true, trim: true, index: true },
     password: { type: String, required: [true, "Password is required"] },
-    role: {type: String, required: true}
+    role: {type: String, required: true},
+    plan: {type: String, required: true, default: "basic"},
   },
   { timestamps: true })
 
