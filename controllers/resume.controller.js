@@ -1,54 +1,47 @@
-import { Resume } from "../models/resume.js";
-export const createResume = async (req, res) => {
-  try {
-    console.log("📩 Incoming Data:", req.body);
+import EmployeeResume from "../models/resume.js";
 
-    const { userId, planType = "basic" } = req.body;
+// Save or update a parsed resume
+export const saveEmployeeResume = async (req, res) => {
+  try {
+    const { userId, ai_suggestions, ...data } = req.body;
 
     if (!userId) {
-      console.log("❌ userId missing in request body");
-      return res.status(400).json({
-        success: false,
-        message: "User ID is required",
-      });
+      return res.status(400).json({ error: "userId is required." });
     }
 
-    // ✅ Check if the user already has a resume
-    const existingResume = await Resume.findOne({ userId });
+    // Default AI suggestions if not provided
+    const defaultAISuggestions = {
+      missing_details: [],
+      missing_sections: [],
+      suggested_additions: [],
+      summary_improvement: [],
+    };
 
-    // ✅ Restrict Basic Plan users to only one CV
-    if (existingResume && planType === "basic") {
-      console.log("⚠️ User already has a resume under Basic Plan");
-      return res.status(403).json({
-        success: false,
-        message:
-          "You have already uploaded a CV under your Basic Plan. Upgrade to Premium to add more.",
-      });
+    const aiData = ai_suggestions || defaultAISuggestions;
+
+    // Check if a resume already exists for this user and email
+    const existing = await EmployeeResume.findOne({ userId, email: data.email });
+
+    if (existing) {
+      await EmployeeResume.updateOne(
+        { _id: existing._id },
+        { $set: { ...data, ai_suggestions: aiData } }
+      );
+      return res.status(200).json({ message: "Existing resume updated successfully." });
     }
 
-    let resume;
-    if (existingResume) {
-      // ✅ For Premium users or allowed updates
-      resume = await Resume.findOneAndUpdate({ userId }, req.body, { new: true });
-      console.log("✅ Resume Updated:", resume);
-    } else {
-      // ✅ Create a new resume
-      resume = await Resume.create(req.body);
-      console.log("✅ Resume Created:", resume);
-    }
-
-    res.status(201).json({
-      success: true,
-      message: existingResume ? "Resume updated successfully" : "Resume created successfully",
-      data: resume,
+    // Create new resume
+    const newResume = new EmployeeResume({
+      userId,
+      ...data,
+      ai_suggestions: aiData,
     });
-  } catch (error) {
-    console.error("❌ Resume Creation Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-      error: error.message,
-    });
+
+    await newResume.save();
+
+    res.status(201).json({ message: "Resume saved successfully.", resumeId: newResume._id });
+  } catch (err) {
+    console.error("❌ Error saving resume:", err);
+    res.status(500).json({ error: err.message });
   }
 };
-

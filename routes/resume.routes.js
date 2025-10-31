@@ -1,9 +1,9 @@
 import express from "express";
-import { createResume } from "../controllers/resume.controller.js";
+import { saveEmployeeResume } from "../controllers/resume.controller.js";
 // import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/resume", createResume);
+router.post("/resume", saveEmployeeResume);
 
 export default router;

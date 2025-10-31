@@ -34,8 +34,8 @@ app.get("/", (req, res) => {
 
 // 🔹 Routes
 app.use("/api/user", userRoutes);
-app.use("/api/cv", cvRoutes); // ✅ CV management routes
-app.use("/api/resume", studentResumeRoutes);
+app.use("/api/employee", cvRoutes); // ✅ CV management routes
+app.use("/api/student", studentResumeRoutes);
 // 🔹 Start Server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
