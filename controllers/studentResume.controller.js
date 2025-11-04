@@ -2,8 +2,6 @@ import { StudentResume } from "../models/studentResume.js";
 
 export const createStudentResume = async (req, res) => {
   try {
-    console.log("📩 Incoming Student Resume Data:", req.body);
-
     const { userId, name, email, summary, education, planType = "Basic", ...rest } = req.body;
 
     // ✅ Validate required fields

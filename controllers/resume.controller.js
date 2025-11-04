@@ -1,15 +1,27 @@
 import EmployeeResume from "../models/resume.js";
 
-// Save or update a parsed resume
 export const saveEmployeeResume = async (req, res) => {
   try {
-    const { userId, ai_suggestions, ...data } = req.body;
+    const { 
+      userId, 
+      ai_suggestions, 
+      planType = "Basic", 
+      name, 
+      email,
+      experience, 
+      education, 
+      ...rest 
+    } = req.body;
 
-    if (!userId) {
-      return res.status(400).json({ error: "userId is required." });
+    // ✅ Validate required fields
+    if (!userId || !name || !email || !education) {
+      return res.status(400).json({
+        success: false,
+        message: "userId, name, email and education are required.",
+      });
     }
 
-    // Default AI suggestions if not provided
+    // ✅ Default AI suggestions if not provided
     const defaultAISuggestions = {
       missing_details: [],
       missing_sections: [],
@@ -19,29 +31,83 @@ export const saveEmployeeResume = async (req, res) => {
 
     const aiData = ai_suggestions || defaultAISuggestions;
 
-    // Check if a resume already exists for this user and email
-    const existing = await EmployeeResume.findOne({ userId, email: data.email });
+    // ✅ Check if a resume already exists for this user
+    const existingResume = await EmployeeResume.findOne({ userId });
 
-    if (existing) {
-      await EmployeeResume.updateOne(
-        { _id: existing._id },
-        { $set: { ...data, ai_suggestions: aiData } }
-      );
-      return res.status(200).json({ message: "Existing resume updated successfully." });
+    // ✅ Restrict Basic Plan users to one resume
+    if (existingResume && planType.toLowerCase() === "basic") {
+      console.log("⚠️ Basic plan user already has a resume.");
+      return res.status(403).json({
+        success: false,
+        message:
+          "You already have a resume under the Basic Plan. Upgrade to Premium to create or modify more resumes.",
+      });
     }
 
-    // Create new resume
-    const newResume = new EmployeeResume({
+    let resume;
+
+    if (existingResume) {
+      // ✅ For Premium users: update existing resume
+      resume = await EmployeeResume.findOneAndUpdate(
+        { userId },
+        {
+          name,
+          email,
+          experience,
+          education,
+          ai_suggestions: aiData,
+          planType,
+          ...rest,
+        },
+        { new: true }
+      );
+
+      console.log("✅ Resume updated successfully:", resume);
+
+      return res.status(200).json({
+        success: true,
+        message: "Resume updated successfully (Premium Plan).",
+        resume,
+      });
+    }
+
+    // ✅ Create new resume
+    resume = new EmployeeResume({
       userId,
-      ...data,
+      name,
+      email,
+      experience,
+      education,
+      planType,
       ai_suggestions: aiData,
+      ...rest,
     });
 
-    await newResume.save();
+    await resume.save();
+    console.log("✅ New employee resume created:", resume);
 
-    res.status(201).json({ message: "Resume saved successfully.", resumeId: newResume._id });
-  } catch (err) {
-    console.error("❌ Error saving resume:", err);
-    res.status(500).json({ error: err.message });
+    return res.status(201).json({
+      success: true,
+      message:
+        planType.toLowerCase() === "basic"
+          ? "Resume created successfully under Basic Plan."
+          : "Resume created successfully under Premium Plan.",
+      resume,
+    });
+  } catch (error) {
+    // ✅ Handle duplicate userId errors
+    if (error.code === 11000 && error.keyValue?.userId) {
+      return res.status(409).json({
+        success: false,
+        message: "A resume already exists for this user (duplicate userId).",
+      });
+    }
+
+    console.error("❌ Error saving employee resume:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occurred while saving the resume.",
+      error: error.message,
+    });
   }
 };
