@@ -9,6 +9,7 @@ import studentResumeRoutes from "./routes/studentResume.routes.js";
 import applicantRoutes from "./routes/applicant.routes.js";
 import jobRoutes from "./routes/job.routes.js";
 import internshipsRoutes from "./routes/internships.routes.js";
+import fypRoutes from "./routes/fyp.routes.js";
 dotenv.config();
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/student", studentResumeRoutes);
 app.use("/api/applicants", applicantRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/internships", internshipsRoutes);
+app.use("/api/fyps", fypRoutes);
 // 🔹 Start Server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
