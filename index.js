@@ -6,6 +6,9 @@ import cookieParser from "cookie-parser";
 import userRoutes from "./routes/user.routes.js";
 import cvRoutes from "./routes/resume.routes.js"; // ✅ newly added
 import studentResumeRoutes from "./routes/studentResume.routes.js";
+import applicantRoutes from "./routes/applicant.routes.js";
+import jobRoutes from "./routes/job.routes.js";
+import internshipsRoutes from "./routes/internships.routes.js";
 dotenv.config();
 
 const app = express();
@@ -36,6 +39,9 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRoutes);
 app.use("/api/employee", cvRoutes); // ✅ CV management routes
 app.use("/api/student", studentResumeRoutes);
+app.use("/api/applicants", applicantRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use("/api/internships", internshipsRoutes);
 // 🔹 Start Server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
