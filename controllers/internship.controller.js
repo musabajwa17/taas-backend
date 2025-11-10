@@ -1,16 +1,59 @@
-import Internship from "../models/internships.js";
+import Internship from "../models/internship.js";
+import mongoose from "mongoose";
 
 // ✅ Create a new internship
 export const createInternship = async (req, res) => {
   try {
-    const internship = new Internship(req.body);
+    const {
+      title,
+      description,
+      duration,
+      qualification,
+      location,
+      requirements,
+      stipend,
+      postedBy: postedByFromFrontend,
+    } = req.body;
+
+    // 🔍 Determine company ID from auth or frontend
+    const companyId = req.user?._id || postedByFromFrontend;
+
+    if (!companyId) {
+      return res.status(400).json({ success: false, message: "Company ID missing" });
+    }
+
+    // ✅ Convert to Mongoose ObjectId
+    const postedBy = new mongoose.Types.ObjectId(companyId);
+
+    const internship = new Internship({
+      title,
+      description,
+      duration,
+      qualification,
+      location,
+      requirements,
+      stipend,
+      postedBy,
+      postedByModel: "Company", // force company
+    });
+
     await internship.save();
-    res.status(201).json({ success: true, message: "Internship created successfully", internship });
+
+    res.status(201).json({
+      success: true,
+      message: "Internship created successfully",
+      internship,
+    });
   } catch (error) {
-    console.error("Error creating internship:", error);
-    res.status(500).json({ success: false, message: "Failed to create internship" });
+    console.error("❌ Error creating internship:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create internship",
+      error: error.message,
+    });
   }
 };
+
 
 // ✅ Get all internships
 export const getAllInternships = async (req, res) => {

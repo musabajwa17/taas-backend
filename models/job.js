@@ -11,32 +11,35 @@ const jobSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    experience: {
-      type: String,
-    },
-    qualification: {
-      type: String,
-    },
+    experience: String,
+    qualification: String,
     location: {
       type: String,
       required: true,
     },
+    salary: String,
     type: {
       type: String,
       enum: ["Full-time", "Part-time", "Contract"],
       default: "Full-time",
     },
-    requirements: {
-      type: String,
-    },
+    requirements: String,
     status: {
       type: String,
       enum: ["Open", "Closed"],
       default: "Open",
     },
+
+    // 🔥 Dynamic reference: either Company or Employer
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // if you have an employer or admin model
+      refPath: "postedByModel",
+      required: true,
+    },
+    postedByModel: {
+      type: String,
+      required: true,
+      enum: ["Company", "Employer"],
     },
   },
   { timestamps: true }

@@ -36,11 +36,17 @@ const FypSchema = new mongoose.Schema(
     },
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
+      refPath: "postedByModel",
       required: true,
+    },
+    postedByModel: {
+      type: String,
+      required: true,
+      enum: ["Company"], // ✅ changed from "User" to "Company"
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Fyp", FypSchema);
+const Fyp = mongoose.model("Fyp", FypSchema);
+export default Fyp;

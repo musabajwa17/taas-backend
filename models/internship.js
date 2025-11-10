@@ -12,13 +12,17 @@ const internshipSchema = new mongoose.Schema(
     type: { type: String, default: "Internship" },
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // or "Company" if you have a separate model
+      refPath: "postedByModel",
       required: true,
+    },
+    postedByModel: {
+      type: String,
+      required: true,
+      enum: ["Company", "User"], // ✅ now supports both
     },
   },
   { timestamps: true }
 );
 
 const Internship = mongoose.model("Internship", internshipSchema);
-
 export default Internship;
