@@ -1,5 +1,7 @@
 import Company from "../models/company.js";
-
+import Job from "../models/job.js";
+import Internship from "../models/internship.js";
+import Fyp from "../models/fyp.js";
 // ✅ Register Company
 export const registerCompany = async (req, res) => {
   try {
@@ -158,4 +160,36 @@ export const updateCompanyById = async (req, res) => {
     });
   }
 };
+
+export const getCompanyDashboardData = async (req, res) => {
+  try {
+    const companyId = req.params.companyId; // <-- correct
+if (!companyId) return res.status(400).json({ success: false, message: "companyId is required" });
+
+
+    // Count documents
+    const jobsCount = await Job.countDocuments({ postedBy: companyId });
+    const internshipsCount = await Internship.countDocuments({ postedBy: companyId });
+    const fypsCount = await Fyp.countDocuments({ postedBy: companyId });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        counts: {
+          jobs: jobsCount,
+          internships: internshipsCount,
+          fyps: fypsCount,
+        }
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+// ✅ Update job status
+
+
+
+
+
 

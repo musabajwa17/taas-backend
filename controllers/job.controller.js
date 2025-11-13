@@ -10,7 +10,7 @@ export const createJob = async (req, res) => {
       qualification,
       location,
       salary,
-      type,
+      jobType,
       requirements,
       status,
       postedBy: postedByFromFrontend
@@ -31,7 +31,7 @@ export const createJob = async (req, res) => {
       qualification,
       location,
       salary,
-      type,
+      jobType,
       requirements,
       status,
       postedBy,
@@ -78,3 +78,45 @@ export const deleteJob = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to delete job", error: error.message });
   }
 };
+// ✅ Update Job Status
+export const updateJobStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Only allow these 3 statuses
+    const allowedStatuses = ["Active", "Closed", "Pending"];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Allowed: Active, Closed, Pending.",
+      });
+    }
+
+    const job = await Job.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Job status updated successfully",
+      job,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating job status",
+      error: error.message,
+    });
+  }
+};
+
