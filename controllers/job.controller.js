@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import Job from "../models/job.js";
 
+/* ============================================================
+   CREATE JOB  (Enhanced validation, safer ObjectId handling)
+   ============================================================ */
 export const createJob = async (req, res) => {
   try {
     const {
@@ -13,16 +16,26 @@ export const createJob = async (req, res) => {
       jobType,
       requirements,
       status,
-      postedBy: postedByFromFrontend
+      postedBy: postedByFromFrontend,
     } = req.body;
 
+    // 🔹 Validate required fields
     if (!postedByFromFrontend) {
-      return res.status(400).json({ success: false, message: "postedBy is required" });
+      return res.status(400).json({
+        success: false,
+        message: "postedBy is required",
+      });
     }
 
-    // Use `new` when creating ObjectId
+    if (!mongoose.Types.ObjectId.isValid(postedByFromFrontend)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid postedBy ObjectId",
+      });
+    }
+
     const postedBy = new mongoose.Types.ObjectId(postedByFromFrontend);
-    const postedByModel = "Company"; // or "Employer" depending on logged-in role
+    const postedByModel = "Company"; // dynamic if needed later (Employer/Company)
 
     const job = new Job({
       title,
@@ -40,52 +53,89 @@ export const createJob = async (req, res) => {
 
     await job.save();
 
-    res.status(201).json({ success: true, message: "Job posted successfully", job });
+    res.status(201).json({
+      success: true,
+      message: "Job posted successfully",
+      job,
+    });
   } catch (error) {
     console.error("❌ Error creating job:", error);
-    res.status(500).json({ success: false, message: "Failed to create job", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to create job",
+      error: error.message,
+    });
   }
 };
 
-
-
-// ✅ Get all Jobs with dynamic populate
+/* ============================================================
+   GET ALL JOBS (Enhanced populate, sorting, still compatible)
+   ============================================================ */
 export const getJobs = async (req, res) => {
   try {
     const jobs = await Job.find()
       .populate({
         path: "postedBy",
-        select: "companyName name email", // both Company and Employer fields
-        strictPopulate: false, // avoids refPath strict issues
+        select: "companyName name email logo address",
+        strictPopulate: false,
       })
       .sort({ createdAt: -1 });
 
-    res.status(200).json({ success: true, message: "Jobs fetched successfully", jobs });
+    res.status(200).json({
+      success: true,
+      message: "Jobs fetched successfully",
+      jobs,
+    });
   } catch (error) {
     console.error("❌ Error fetching jobs:", error);
-    res.status(500).json({ success: false, message: "Error fetching jobs", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching jobs",
+      error: error.message,
+    });
   }
 };
 
-// ✅ Delete a job by ID
+/* ============================================================
+   DELETE JOB BY ID (No behavior change)
+   ============================================================ */
 export const deleteJob = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job ID",
+      });
+    }
+
     await Job.findByIdAndDelete(id);
-    res.status(200).json({ success: true, message: "Job deleted successfully" });
+
+    res.status(200).json({
+      success: true,
+      message: "Job deleted successfully",
+    });
   } catch (error) {
     console.error("❌ Error deleting job:", error);
-    res.status(500).json({ success: false, message: "Failed to delete job", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete job",
+      error: error.message,
+    });
   }
 };
-// ✅ Update Job Status
+
+/* ============================================================
+   UPDATE JOB STATUS (Enhanced validation)
+   ============================================================ */
 export const updateJobStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
-    // Only allow these 3 statuses
     const allowedStatuses = ["Active", "Closed", "Pending"];
+
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -120,3 +170,29 @@ export const updateJobStatus = async (req, res) => {
   }
 };
 
+/* ============================================================
+   GET INTERNSHIPS (Enhanced — now includes company populate)
+   ============================================================ */
+export const getInternships = async (req, res) => {
+  try {
+    const internships = await Job.find({ jobType: "Internship" })
+      .populate({
+        path: "postedBy",
+        select: "companyName name email logo address",
+        strictPopulate: false,
+      })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: internships.length,
+      data: internships,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch internships",
+      error: error.message,
+    });
+  }
+};

@@ -1,15 +1,32 @@
+// routes/company.routes.js
 import express from "express";
-import { registerCompany, loginCompany, logoutCompany, getCompanyById, updateCompanyById, getCompanyDashboardData } from "../controllers/company.controller.js";
+import { requireAuth } from "../middleware/auth.js";
+import {
+  registerCompany,
+  loginCompany,
+  refreshToken,
+  logoutCompany,
+  getCompanyById,
+  updateCompanyById,
+  getCompanyDashboardData
+} from "../controllers/company.controller.js";
+
 const router = express.Router();
 
+// public
 router.post("/register", registerCompany);
 router.post("/login", loginCompany);
-router.post("/logout", logoutCompany);
-// GET single company
-router.get("/:id", getCompanyById);
-// PUT update company
-router.put("/:id", updateCompanyById);
-// routes/companyRoutes.js
-router.get("/:companyId/dashboard", getCompanyDashboardData);
+router.post("/refresh", refreshToken); // exchange/rotate refresh token
+
+// dashboard route is more specific — place it before :id routes
+router.get("/:companyId/dashboard", requireAuth, getCompanyDashboardData);
+
+// protected actions: logout & update require authentication
+router.post("/logout", requireAuth, logoutCompany);
+
+// GET/PUT by id
+router.route("/:id")
+  .get(getCompanyById)              // public read
+  .put(requireAuth, updateCompanyById); // protected update
 
 export default router;

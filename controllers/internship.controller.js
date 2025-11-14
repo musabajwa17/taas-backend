@@ -54,7 +54,6 @@ export const createInternship = async (req, res) => {
   }
 };
 
-
 // ✅ Get all internships
 export const getAllInternships = async (req, res) => {
   try {

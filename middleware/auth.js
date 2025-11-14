@@ -1,28 +1,22 @@
+// middleware/auth.js
 import jwt from "jsonwebtoken";
-import User from "../models/user.js";
+import Company from "../models/company.js";
 
-export const verifyToken = async (req, res, next) => {
+export const requireAuth = async (req, res, next) => {
   try {
-    // ✅ Get token from headers or cookies
     const authHeader = req.headers.authorization;
-    const token = authHeader?.split(" ")[1] || req.cookies?.accessToken;
+    if (!authHeader || !authHeader.startsWith("Bearer "))
+      return res.status(401).json({ success: false, message: "No token provided" });
 
-    if (!token) {
-      return res.status(401).json({ message: "No token provided" });
-    }
+    const token = authHeader.split(" ")[1];
+    const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-    // ✅ Verify the token
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    const user = await User.findById(decoded._id);
+    const company = await Company.findById(payload._id).select("-password -refreshTokenHash");
+    if (!company) return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    req.user = user; // attach user to request
+    req.company = company; // attach company object to req
     next();
-  } catch (error) {
-    console.error("Token verification failed:", error);
-    res.status(401).json({ message: "Invalid or expired token" });
+  } catch (err) {
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
