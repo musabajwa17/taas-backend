@@ -8,7 +8,7 @@ import User from "../models/user.js";
  */
 export const registerUser = async (req, res) => {
   try {
-    const { fullName, email, password, role } = req.body;
+    const { name, email, password, role } = req.body;
 
     // 1️⃣ Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -17,7 +17,7 @@ export const registerUser = async (req, res) => {
     }
 
     // 2️⃣ Create new user
-    const newUser = await User.create({ fullName, email, password, role });
+    const newUser = await User.create({ name, email, password, role });
 
     // 3️⃣ Generate tokens
     const accessToken = newUser.generateAccessToken();
@@ -47,7 +47,7 @@ export const registerUser = async (req, res) => {
       message: "User Registered Successfully",
       user: {
         _id: newUser._id,
-        fullName: newUser.fullName,
+        fullName: newUser.name,
         email: newUser.email,
         role: newUser.role,
       },

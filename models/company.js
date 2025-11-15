@@ -15,7 +15,7 @@ const companySchema = new mongoose.Schema(
     industry: { type: String },
     size: { type: String, default: "1-10 employees" },
     plan: { type: String, enum: ["basic", "premium"], default: "basic" },
-    refreshTokenHash: { type: String }, // hashed refresh token stored
+    refreshToken: { type: String }, // hashed refresh token stored
     establishedYear: { type: Number, min: 1800, max: new Date().getFullYear() },
     logo: { type: String }, // url or path
   },

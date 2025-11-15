@@ -11,7 +11,7 @@ import jobRoutes from "./routes/job.routes.js";
 import internshipsRoutes from "./routes/internships.routes.js";
 import fypRoutes from "./routes/fyp.routes.js";
 import companyRoutes from "./routes/company.routes.js";
-import employerRoutes from "./routes/employer.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 dotenv.config();
 
 const app = express();
@@ -39,15 +39,15 @@ app.get("/", (req, res) => {
 });
 
 // 🔹 Routes
+  app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/company", companyRoutes);
 app.use("/api/employee", cvRoutes);
 app.use("/api/student", studentResumeRoutes);
 app.use("/api/applicants", applicantRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/internships", internshipsRoutes);
 app.use("/api/fyps", fypRoutes);
-app.use("/api/company", companyRoutes);
-app.use("/api/employer", employerRoutes);
 // 🔹 Start Server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
