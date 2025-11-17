@@ -18,9 +18,10 @@ const app = express();
 
 // 🔹 Middleware
 app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true,
+  origin: "http://localhost:3000", // your Next.js port
+  credentials: true
 }));
+
 app.use(cookieParser())
 app.use(express.json());
 
@@ -39,7 +40,7 @@ app.get("/", (req, res) => {
 });
 
 // 🔹 Routes
-  app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/employee", cvRoutes);

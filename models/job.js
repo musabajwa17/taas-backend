@@ -7,35 +7,38 @@ const JobSchema = new mongoose.Schema(
       required: [true, "Job title is required"],
       trim: true,
     },
+
     description: {
       type: String,
       required: [true, "Job description is required"],
-      maxlength: [5000, "Description cannot exceed 500 words"], // approx 500 words ~ 5000 chars
+      maxlength: 5000, // ~500 words
       trim: true,
     },
+
     experience: {
       type: String,
       enum: ["Fresher", "1-2 years", "3-4 years", "5-6 years", "6+ years"],
-      required: [true, "Experience is required"],
+      required: true,
     },
+
     qualification: {
       type: String,
       enum: [
-        "BS in CS",
-        "MS in CS",
-        "BS in IT",
-        "MS in IT",
-        "BS in SE",
-        "MS in SE",
-        "Other",
+        "High School",
+        "Diploma",
+        "Bachelor's",
+        "Master's",
+        "Doctorate",
       ],
-      required: [true, "Qualification is required"],
+      required: true,
     },
+
     location: {
       type: String,
-      required: [true, "Location is required"],
+      required: true,
       trim: true,
     },
+
     salary: {
       type: String,
       enum: [
@@ -48,22 +51,47 @@ const JobSchema = new mongoose.Schema(
         "300-400k",
         "400-500k",
       ],
-      required: [true, "Salary range is required"],
+      required: true,
     },
+
     jobType: {
       type: String,
       enum: ["Full-time", "Part-time", "Contract", "Internship", "Other"],
-      required: [true, "Job type is required"],
+      required: true,
     },
+
+    workType: {
+      type: String,
+      enum: ["On-Site", "Hybrid", "Remote"],
+      required: true,
+    },
+
+    // ⭐ Requirements
+    requirements: {
+      type: [String],
+      required: true,
+    },
+
+    // ⭐ NEW STATUS SETUP
     status: {
       type: String,
-      enum: ["Active", "Closed", "Pending"],
-      default: [true, "Status is required"],
+      enum: ["Active", "Draft", "Inactive"],
+      default: "Active",
     },
-    requirements: {
-      type: [String], // Array of skills
-      required: [true, "Job requirements are required"],
+
+    // ⭐ Job goes active on this date
+    scheduleDate: {
+      type: Date,
+      default: null,
     },
+
+    // ⭐ After this date, job closes automatically
+    closingDate: {
+      type: Date,
+      required: [true, "Closing date is required"],
+    },
+
+    // ⭐ Company reference
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Company",

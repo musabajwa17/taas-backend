@@ -134,12 +134,16 @@ export const getMe = async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-    res.status(200).json({ user: { ...req.user.toObject(), role: req.role } });
+    // Always safe: convert Mongoose doc to plain object
+    const userObj = req.user.toObject ? req.user.toObject() : req.user;
+
+    res.status(200).json({ user: { ...userObj, role: req.role } });
   } catch (err) {
     console.error("GetMe error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // 🔹 Logout
 export const logout = async (req, res) => {

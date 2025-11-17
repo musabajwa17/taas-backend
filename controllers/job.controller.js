@@ -15,28 +15,24 @@ export const createJob = async (req, res) => {
       salary,
       jobType,
       requirements,
-      status,
-      postedBy: postedByFromFrontend,
+      workType,
+      status,          // new (Active/Draft/Inactive)
+      scheduleDate,    // new
+      closingDate,     // new
+      postedBy,
     } = req.body;
 
-    // 🔹 Validate required fields
-    if (!postedByFromFrontend) {
-      return res.status(400).json({
-        success: false,
-        message: "postedBy is required",
-      });
-    }
+    // Required fields
+    if (!postedBy)
+      return res.status(400).json({ success: false, message: "postedBy is required" });
 
-    if (!mongoose.Types.ObjectId.isValid(postedByFromFrontend)) {
+    if (!mongoose.Types.ObjectId.isValid(postedBy))
       return res.status(400).json({
         success: false,
         message: "Invalid postedBy ObjectId",
       });
-    }
 
-    const postedBy = new mongoose.Types.ObjectId(postedByFromFrontend);
-    const postedByModel = "Company"; // dynamic if needed later (Employer/Company)
-
+    // Create job
     const job = new Job({
       title,
       description,
@@ -46,27 +42,30 @@ export const createJob = async (req, res) => {
       salary,
       jobType,
       requirements,
-      status,
+      workType,
+      status: status || "Active",
+      scheduleDate: scheduleDate || null,
+      closingDate,
       postedBy,
-      postedByModel,
     });
 
     await job.save();
 
     res.status(201).json({
       success: true,
-      message: "Job posted successfully",
+      message: "Job created successfully",
       job,
     });
   } catch (error) {
-    console.error("❌ Error creating job:", error);
+    console.error("❌ createJob:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to create job",
+      message: "Error creating job",
       error: error.message,
     });
   }
 };
+
 
 /* ============================================================
    GET ALL JOBS (Enhanced populate, sorting, still compatible)
@@ -76,18 +75,16 @@ export const getJobs = async (req, res) => {
     const jobs = await Job.find()
       .populate({
         path: "postedBy",
-        select: "companyName name email logo address",
+        select: "companyName email logo address",
         strictPopulate: false,
       })
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      message: "Jobs fetched successfully",
       jobs,
     });
   } catch (error) {
-    console.error("❌ Error fetching jobs:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching jobs",
@@ -95,6 +92,7 @@ export const getJobs = async (req, res) => {
     });
   }
 };
+
 
 /* ============================================================
    DELETE JOB BY ID (No behavior change)
@@ -110,21 +108,28 @@ export const deleteJob = async (req, res) => {
       });
     }
 
-    await Job.findByIdAndDelete(id);
+    const deleted = await Job.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
 
     res.status(200).json({
       success: true,
-      message: "Job deleted successfully",
+      message: "Job deleted",
     });
   } catch (error) {
-    console.error("❌ Error deleting job:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to delete job",
+      message: "Error deleting job",
       error: error.message,
     });
   }
 };
+
 
 /* ============================================================
    UPDATE JOB STATUS (Enhanced validation)
@@ -134,12 +139,12 @@ export const updateJobStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const allowedStatuses = ["Active", "Closed", "Pending"];
+    const allowedStatuses = ["Active", "Draft", "Inactive"];
 
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid status. Allowed: Active, Closed, Pending.",
+        message: "Invalid status. Allowed: Active, Draft, Inactive.",
       });
     }
 
@@ -158,7 +163,6 @@ export const updateJobStatus = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Job status updated successfully",
       job,
     });
   } catch (error) {
@@ -170,6 +174,7 @@ export const updateJobStatus = async (req, res) => {
   }
 };
 
+
 /* ============================================================
    GET INTERNSHIPS (Enhanced — now includes company populate)
    ============================================================ */
@@ -178,7 +183,7 @@ export const getInternships = async (req, res) => {
     const internships = await Job.find({ jobType: "Internship" })
       .populate({
         path: "postedBy",
-        select: "companyName name email logo address",
+        select: "companyName email logo address",
         strictPopulate: false,
       })
       .sort({ createdAt: -1 });
@@ -186,7 +191,7 @@ export const getInternships = async (req, res) => {
     res.status(200).json({
       success: true,
       count: internships.length,
-      data: internships,
+      internships,
     });
   } catch (error) {
     res.status(500).json({
@@ -196,3 +201,4 @@ export const getInternships = async (req, res) => {
     });
   }
 };
+
