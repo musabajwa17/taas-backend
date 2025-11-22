@@ -18,9 +18,10 @@ const app = express();
 
 // 🔹 Middleware
 app.use(cors({
-  origin: "http://localhost:3000", // your Next.js port
-  credentials: true
+  origin: process.env.FRONTEND_URL,
+  credentials: true,  // very important
 }));
+
 
 app.use(cookieParser())
 app.use(express.json());
