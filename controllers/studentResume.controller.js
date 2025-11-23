@@ -83,18 +83,31 @@ export const getStudentResume = async (req, res) => {
   try {
     const { userId } = req.params;
 
+    // Check if resume exists
     const resume = await StudentResume.findOne({ userId });
 
     if (!resume) {
-      return res.status(404).json({ message: "Resume not found" });
+      return res.status(200).json({
+        exists: false,
+        message: "No resume found for this user",
+      });
     }
 
-    res.status(200).json(resume);
+    // If found
+    return res.status(200).json({
+      exists: true,
+      resume,
+    });
+
   } catch (error) {
     console.error("❌ Error fetching resume:", error);
-    res.status(500).json({ message: "Server error while fetching resume" });
+    return res.status(500).json({
+      exists: false,
+      message: "Server error while fetching resume",
+    });
   }
 };
+
 
 export const updateResume = async (req, res) => {
   try {

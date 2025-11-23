@@ -1,20 +1,38 @@
 import Applicant from "../models/applicant.js";
+import User from "../models/user.js";
+import {StudentResume} from "../models/studentResume.js";
 
 // ✅ Create a new applicant
 export const createApplicant = async (req, res) => {
   try {
-    const applicant = new Applicant(req.body);
+    const { userId, jobId, resumeId } = req.body;
+
+    if (!userId || !jobId || !resumeId) {
+      return res.status(400).json({ success: false, message: "userId, jobId, and resumeId are required" });
+    }
+
+    const applicant = new Applicant({ userId, jobId, resumeId });
     await applicant.save();
-    res.status(201).json({ success: true, applicant });
+
+    const populatedApplicant = await applicant
+      .populate("userId", "name email") // include full resume snapshot if needed
+
+    res.status(201).json({ success: true, applicant: populatedApplicant });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
-// ✅ Get all applicants
+// ✅ Get all applicants (optionally filter by jobId)
 export const getApplicants = async (req, res) => {
   try {
-    const applicants = await Applicant.find().sort({ createdAt: -1 });
+    const filter = {};
+    if (req.query.jobId) filter.jobId = req.query.jobId;
+
+    const applicants = await Applicant.find(filter)
+      .populate("userId", "name email")
+      .populate("resumeId"); // full resume
+
     res.status(200).json({ success: true, applicants });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -24,7 +42,10 @@ export const getApplicants = async (req, res) => {
 // ✅ Get single applicant by ID
 export const getApplicantById = async (req, res) => {
   try {
-    const applicant = await Applicant.findById(req.params.id);
+    const applicant = await Applicant.findById(req.params.id)
+      .populate("userId", "name email")
+      .populate("resumeId");
+
     if (!applicant) return res.status(404).json({ message: "Applicant not found" });
     res.status(200).json({ success: true, applicant });
   } catch (error) {
@@ -40,7 +61,7 @@ export const updateApplicantStatus = async (req, res) => {
       req.params.id,
       { status },
       { new: true }
-    );
+    ).populate("userId", "name email").populate("resumeId");
 
     if (!applicant) return res.status(404).json({ message: "Applicant not found" });
     res.status(200).json({ success: true, applicant });

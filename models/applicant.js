@@ -2,35 +2,29 @@ import mongoose from "mongoose";
 
 const applicantSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      lowercase: true,
-    },
-    phone: {
-      type: String,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
-    jobTitle: {
-      type: String,
+    jobId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Job",
       required: true,
     },
-    experience: {
-      type: String,
+    resumeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "StdResume",
+      required: true,
     },
     status: {
       type: String,
-      enum: ["Pending", "Shortlisted", "Rejected", "Hired"],
-      default: "Pending",
+      enum: ["Applied", "Reviewed", "Shortlisted", "Rejected", "Hired"],
+      default: "Applied",
     },
-    resumeUrl: {
-      type: String,
-      required: true,
+    appliedAt: {
+      type: Date,
+      default: Date.now,
     },
   },
   { timestamps: true }
