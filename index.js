@@ -12,6 +12,7 @@ import internshipsRoutes from "./routes/internships.routes.js";
 import fypRoutes from "./routes/fyp.routes.js";
 import companyRoutes from "./routes/company.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+
 dotenv.config();
 
 const app = express();

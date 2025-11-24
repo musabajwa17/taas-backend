@@ -10,54 +10,80 @@ export const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // 1️⃣ Check if user already exists
+    // 1️⃣ Validate body completely
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // 2️⃣ Check existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    // 2️⃣ Create new user
-    const newUser = await User.create({ name, email, password, role });
+    // 3️⃣ Create user
+    const newUser = await User.create({
+      name,
+      email,
+      password,
+      role,
+    });
 
-    // 3️⃣ Generate tokens
-    const accessToken = newUser.generateAccessToken();
-    const refreshToken = newUser.generateRefreshToken();
+    // 4️⃣ Generate tokens (ensure methods exist on schema)
+    const accessToken = newUser.generateAccessToken?.();
+    const refreshToken = newUser.generateRefreshToken?.();
 
-    // 4️⃣ Save refresh token to DB
+    if (!accessToken || !refreshToken) {
+      throw new Error(
+        "Token generation methods missing. Define `generateAccessToken` and `generateRefreshToken` in User schema."
+      );
+    }
+
+    // 5️⃣ Store refresh token in DB
     newUser.refreshToken = refreshToken;
     await newUser.save({ validateBeforeSave: false });
 
-    // 5️⃣ Send tokens as HttpOnly cookies
+    // 6️⃣ Send HTTP-only cookies
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // 6️⃣ Send success response with correct user info
-    res.status(200).json({
+    // 7️⃣ Response
+    res.status(201).json({
+      success: true,
       message: "User Registered Successfully",
       user: {
         _id: newUser._id,
-        fullName: newUser.name,
+        name: newUser.name,
         email: newUser.email,
         role: newUser.role,
       },
-      accessToken, // optional: send token too
+      accessToken, // optional
     });
   } catch (err) {
-    console.error("Register Error:", err);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("🔥 REGISTER ERROR:", err.message); // show real message
+    console.error(err); // full stack trace
+
+    res.status(500).json({
+      success: false,
+      message: "Registration failed",
+      error: err.message,
+    });
   }
 };
+
 
 
 /**

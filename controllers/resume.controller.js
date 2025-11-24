@@ -111,3 +111,69 @@ export const saveEmployeeResume = async (req, res) => {
     });
   }
 };
+
+// ---------------- GET RESUME ----------------
+export const getEmployeeResume = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const resume = await EmployeeResume.findOne({ userId });
+
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found for this user."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      resume,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching resume:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching resume.",
+    });
+  }
+};
+
+// ---------------- UPDATE RESUME ----------------
+export const updateEmployeeResume = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const updateData = req.body;
+
+    // Prevent updating userId directly
+    if (updateData.userId) delete updateData.userId;
+
+    const updatedResume = await EmployeeResume.findOneAndUpdate(
+      { userId },
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedResume) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found. Cannot update.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Resume updated successfully.",
+      resume: updatedResume,
+    });
+
+  } catch (error) {
+    console.error("❌ Error updating resume:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while updating resume.",
+      error: error.message,
+    });
+  }
+};
