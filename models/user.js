@@ -9,11 +9,9 @@ const userSchema = mongoose.Schema( {
       lowercase: true,
       trim: true,
     },
-    name: { type: String, required: true, trim: true, index: true },
+    fullName: { type: String, required: true, trim: true, index: true },
     password: { type: String, required: [true, "Password is required"] },
-    role: {type: String, required: true},
-    plan: {type: String, required: true, default: "basic"},
-    refreshToken: String
+    role: {type: String, required: true}
   },
   { timestamps: true })
 

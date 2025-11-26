@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/user.routes.js";
-import cvRoutes from "./routes/resume.routes.js"; // ✅ newly added
+import cvRoutes from "./routes/resume.routes.js";
 import studentResumeRoutes from "./routes/studentResume.routes.js";
 import applicantRoutes from "./routes/applicant.routes.js";
 import jobRoutes from "./routes/job.routes.js";
@@ -51,6 +51,5 @@ app.use("/api/applicants", applicantRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/internships", internshipsRoutes);
 app.use("/api/fyps", fypRoutes);
-// 🔹 Start Server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

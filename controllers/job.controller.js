@@ -139,12 +139,12 @@ export const updateJobStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const allowedStatuses = ["Active", "Draft", "Inactive"];
+    const allowedStatuses = ["Active", "Draft", "Inactive", "Closed"];
 
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid status. Allowed: Active, Draft, Inactive.",
+        message: "Invalid status. Allowed: Active, Draft,Close, Inactive.",
       });
     }
 
@@ -173,8 +173,6 @@ export const updateJobStatus = async (req, res) => {
     });
   }
 };
-
-
 /* ============================================================
    GET INTERNSHIPS (Enhanced — now includes company populate)
    ============================================================ */
