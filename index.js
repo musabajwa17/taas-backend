@@ -18,9 +18,27 @@ dotenv.config();
 const app = express();
 
 // 🔹 Middleware
+// app.use(cors({
+//   origin: process.env.FRONTEND_URL,
+//   credentials: true,  // very important
+// }));
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://taa-s-grid.vercel.app"
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true,  // very important
+  origin: function (origin, callback) {
+    // allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
 }));
 
 
