@@ -12,11 +12,12 @@ const generateTokens = (id, role) => {
 // -------------------- Cookie Options -------------------- //
 const getCookieOptions = (maxAge) => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: true, // force secure ON
   sameSite: "none",
   path: "/",
   maxAge,
 });
+
 
 // -------------------- Login -------------------- //
 export const login = async (req, res) => {
