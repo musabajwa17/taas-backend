@@ -42,15 +42,16 @@ const JobSchema = new mongoose.Schema(
     salary: {
       type: String,
       enum: [
-        "30-40k",
-        "40-60k",
-        "60-80k",
-        "80-100k",
-        "100-200k",
-        "200-300k",
-        "300-400k",
-        "400-500k",
-      ],
+      "$100-$300",
+      "$300-$500",
+      "$500-$800",
+      "$800-$1000",
+      "$1000-$1500",
+      "$1500-$2000",
+      "$2000-$2500",
+      "$2500-$3000",
+      "$3000+"
+    ],
       required: true,
     },
 
@@ -75,7 +76,7 @@ const JobSchema = new mongoose.Schema(
     // ⭐ NEW STATUS SETUP
     status: {
       type: String,
-      enum: ["Active", "Draft", "In-Active", "CLosed"],
+      enum: ["Active", "Draft", "Inactive", "Closed"],
       default: "Active",
     },
 
