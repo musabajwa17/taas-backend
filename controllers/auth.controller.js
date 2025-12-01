@@ -39,7 +39,7 @@ const generateTokens = (id, role) => {
   );
 
   return { accessToken, refreshToken };
-};
+};      
 
 // -------------------- Login -------------------- //
 export const login = async (req, res) => {
@@ -103,9 +103,11 @@ export const registerUser = async (req, res) => {
     if (!name || !email || !password || !role)
       return res.status(400).json({ message: "All fields required" });
 
+    // User already exists?
     if (await User.findOne({ email }))
       return res.status(409).json({ message: "User already exists" });
 
+    // Create new user (NO token generation)
     const user = await User.create({
       name,
       email,
@@ -114,29 +116,26 @@ export const registerUser = async (req, res) => {
       plan: plan || "basic",
     });
 
-    const { accessToken, refreshToken } = generateTokens(user._id, role);
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
-
-    res.cookie("accessToken", accessToken, getCookieOptions(15 * 60 * 1000));
-    res.cookie("refreshToken", refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
-
+    // Send back only user info — NOT logged in
     res.status(201).json({
-      message: "User registered",
+      message: "User registered successfully. Please login.",
       user: {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role,
+        role: user.role,
         plan: user.plan,
       },
     });
+
   } catch (err) {
     console.error("Register user error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+
+// -------------------- Register Company -------------------- //
 // -------------------- Register Company -------------------- //
 export const registerCompany = async (req, res) => {
   try {
@@ -145,9 +144,11 @@ export const registerCompany = async (req, res) => {
     if (!companyName || !email || !password)
       return res.status(400).json({ message: "Required fields missing" });
 
+    // Check if company exists
     if (await Company.findOne({ email }))
       return res.status(409).json({ message: "Company already exists" });
 
+    // Create company (NO TOKEN GENERATION)
     const company = await Company.create({
       companyName,
       email,
@@ -156,15 +157,9 @@ export const registerCompany = async (req, res) => {
       ...rest,
     });
 
-    const { accessToken, refreshToken } = generateTokens(company._id, "company");
-    company.refreshToken = refreshToken;
-    await company.save({ validateBeforeSave: false });
-
-    res.cookie("accessToken", accessToken, getCookieOptions(15 * 60 * 1000));
-    res.cookie("refreshToken", refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
-
+    // Respond with newly created company details (NO COOKIES)
     res.status(201).json({
-      message: "Company registered",
+      message: "Company registered successfully. Please login.",
       company: {
         _id: company._id,
         companyName,
@@ -172,11 +167,13 @@ export const registerCompany = async (req, res) => {
         plan: company.plan,
       },
     });
+
   } catch (err) {
     console.error("Register company error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // -------------------- Get Current User -------------------- //
 export const getMe = async (req, res) => {
