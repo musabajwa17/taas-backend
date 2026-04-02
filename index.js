@@ -58,7 +58,6 @@ mongoose
 app.get("/", (req, res) => {
   res.send("🚀 TaaS Grid API is running...");
 });
-
 // 🔹 Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
